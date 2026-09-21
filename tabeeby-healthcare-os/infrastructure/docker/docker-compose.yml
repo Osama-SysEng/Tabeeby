@@ -1,0 +1,458 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build:
+      context: ../..
+      dockerfile: backend/api-gateway/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ULTRA_IQ_URL=http://ultra-iq-engine:8001
+      - AUTH_URL=http://auth-service:8002
+      - PATIENT_URL=http://patient-service:8003
+      - PHYSICIAN_URL=http://physician-service:8004
+      - DIAGNOSTIC_URL=http://diagnostic-ai:8005
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+      - kafka
+    networks:
+      - tabeeby-network
+
+  # Ultra IQ Engine
+  ultra-iq-engine:
+    build:
+      context: ../..
+      dockerfile: backend/ultra-iq-engine/Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - COGNITIVE_OPS_PER_SEC=300000000000
+      - MODEL_PATH=/models/ultra-iq
+      - GPU_ENABLED=true
+    volumes:
+      - ultra-iq-models:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - tabeeby-network
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ../..
+      dockerfile: backend/auth-service/Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/tabeeby_auth
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - tabeeby-network
+
+  # Patient Service
+  patient-service:
+    build:
+      context: ../..
+      dockerfile: backend/patient-service/Dockerfile
+    ports:
+      - "8003:8003"
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/tabeeby_patients
+      - TIMESCALE_URL=postgresql://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@timescaledb:5432/tabeeby_iot
+      - QDRANT_URL=http://qdrant:6333
+      - NEO4J_URL=bolt://neo4j:7687
+    depends_on:
+      - postgres
+      - timescaledb
+      - qdrant
+      - neo4j
+    networks:
+      - tabeeby-network
+
+  # Physician Service
+  physician-service:
+    build:
+      context: ../..
+      dockerfile: backend/physician-service/Dockerfile
+    ports:
+      - "8004:8004"
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/tabeeby_physicians
+      - ULTRA_IQ_URL=http://ultra-iq-engine:8001
+      - PATIENT_URL=http://patient-service:8003
+    depends_on:
+      - postgres
+      - ultra-iq-engine
+    networks:
+      - tabeeby-network
+
+  # Diagnostic AI
+  diagnostic-ai:
+    build:
+      context: ../..
+      dockerfile: backend/diagnostic-ai/Dockerfile
+    ports:
+      - "8005:8005"
+    environment:
+      - MODEL_PATH=/models/diagnostic
+      - RAG_INDEX_URL=http://qdrant:6333
+      - GPU_ENABLED=true
+    volumes:
+      - diagnostic-models:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - tabeeby-network
+
+  # Drug Discovery
+  drug-discovery:
+    build:
+      context: ../..
+      dockerfile: backend/drug-discovery/Dockerfile
+    ports:
+      - "8006:8006"
+    environment:
+      - MOLECULAR_DB_URL=postgresql://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/tabeeby_molecular
+      - NEO4J_URL=bolt://neo4j:7687
+      - SIMULATION_GPU=true
+    depends_on:
+      - postgres
+      - neo4j
+    networks:
+      - tabeeby-network
+
+  # Bio Robot OS
+  bio-robot-os:
+    build:
+      context: ../..
+      dockerfile: backend/bio-robot-os/Dockerfile
+    ports:
+      - "8007:8007"
+    environment:
+      - SIMULATION_ENGINE=physics_accurate
+      - FLEET_COORDINATION=true
+      - VR_ENABLED=true
+    networks:
+      - tabeeby-network
+
+  # Nano OS
+  nano-os:
+    build:
+      context: ../..
+      dockerfile: backend/nano-os/Dockerfile
+    ports:
+      - "8008:8008"
+    environment:
+      - MOLECULAR_RESOLUTION=atomic
+      - SURGERY_ENGINE=autonomous
+      - VR_NANO_FIELD=true
+    networks:
+      - tabeeby-network
+
+  # Surgical 4D
+  surgical-4d:
+    build:
+      context: ../..
+      dockerfile: backend/surgical-4d/Dockerfile
+    ports:
+      - "8009:8009"
+    environment:
+      - TEMPORAL_PROJECTION_YEARS=10
+      - PARALLEL_TIMELINES=true
+      - QUANTUM_MODELING=true
+      - CONSCIOUSNESS_MONITORING=true
+    networks:
+      - tabeeby-network
+
+  # Robot OS
+  robot-os:
+    build:
+      context: ../..
+      dockerfile: backend/robot-os/Dockerfile
+    ports:
+      - "8010:8010"
+    environment:
+      - UNIVERSAL_DETECTION=true
+      - AUTO_FIRMWARE_GEN=true
+      - FLEET_LEARNING=true
+    networks:
+      - tabeeby-network
+
+  # IoT Service
+  iot-service:
+    build:
+      context: ../..
+      dockerfile: backend/iot-service/Dockerfile
+    ports:
+      - "8011:8011"
+      - "1883:1883"
+    environment:
+      - MQTT_PORT=1883
+      - WEBSOCKET_PORT=8011
+      - TIMESCALE_URL=postgresql://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@timescaledb:5432/tabeeby_iot
+    depends_on:
+      - timescaledb
+    networks:
+      - tabeeby-network
+
+  # Emergency Service
+  emergency-service:
+    build:
+      context: ../..
+      dockerfile: backend/emergency-service/Dockerfile
+    ports:
+      - "8012:8012"
+    environment:
+      - PATIENT_URL=http://patient-service:8003
+      - PHYSICIAN_URL=http://physician-service:8004
+      - NOTIFICATION_URL=http://notification-service:8015
+      - AMBULANCE_DISPATCH=true
+      - ER_PRE_ALERT=true
+    depends_on:
+      - patient-service
+      - physician-service
+      - notification-service
+    networks:
+      - tabeeby-network
+
+  # Research Service
+  research-service:
+    build:
+      context: ../..
+      dockerfile: backend/research-service/Dockerfile
+    ports:
+      - "8013:8013"
+    environment:
+      - PUBMED_API_KEY=${PUBMED_KEY}
+      - CLINICAL_TRIALS_API=${CT_API}
+      - ULTRA_IQ_URL=http://ultra-iq-engine:8001
+    depends_on:
+      - ultra-iq-engine
+    networks:
+      - tabeeby-network
+
+  # National Health
+  national-health:
+    build:
+      context: ../..
+      dockerfile: backend/national-health/Dockerfile
+    ports:
+      - "8014:8014"
+    environment:
+      - MINISTRY_INTEGRATION=true
+      - EPIDEMIC_EARLY_WARNING=true
+      - PHARMACY_NETWORK=true
+    networks:
+      - tabeeby-network
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ../..
+      dockerfile: backend/notification-service/Dockerfile
+    ports:
+      - "8015:8015"
+    environment:
+      - SMS_PROVIDER=${SMS_PROVIDER}
+      - EMAIL_PROVIDER=${EMAIL_PROVIDER}
+      - PUSH_PROVIDER=${PUSH_PROVIDER}
+    networks:
+      - tabeeby-network
+
+  # Internal malware scanner; do not expose its socket or TCP port.
+  clamav:
+    image: clamav/clamav:stable
+    volumes:
+      - clamav-run:/var/run/clamav
+    networks:
+      - tabeeby-network
+
+  # File Security / Quarantine Scanner
+  file-security:
+    build:
+      context: ../..
+      dockerfile: backend/file-security/Dockerfile
+    expose:
+      - "8017"
+    environment:
+      - MAX_UPLOAD_BYTES=${MAX_UPLOAD_BYTES:-10485760}
+      - CLAMD_SOCKET=/var/run/clamav/clamd.ctl
+    depends_on:
+      - clamav
+    volumes:
+      - clamav-run:/var/run/clamav
+    networks:
+      - tabeeby-network
+
+  # Billing Service
+  billing-service:
+    build:
+      context: ../..
+      dockerfile: backend/billing-service/Dockerfile
+    ports:
+      - "8016:8016"
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/tabeeby_billing
+      - INSURANCE_INTEGRATION=true
+    depends_on:
+      - postgres
+    networks:
+      - tabeeby-network
+
+  # Frontend Web
+  frontend-web:
+    build:
+      context: ../..
+      dockerfile: frontend/web/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8000
+    networks:
+      - tabeeby-network
+
+  # Databases
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      - POSTGRES_DB=tabeeby
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../../database/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - tabeeby-network
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      - POSTGRES_DB=tabeeby_iot
+    volumes:
+      - timescale-data:/var/lib/postgresql/data
+      - ../../database/timescaledb/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"
+    networks:
+      - tabeeby-network
+
+  neo4j:
+    image: neo4j:5-community
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:?NEO4J_PASSWORD is required}
+      - NEO4J_PLUGINS=["apoc","gds"]
+    volumes:
+      - neo4j-data:/data
+      - ../../database/neo4j/schema.cypher:/var/lib/neo4j/import/schema.cypher
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    networks:
+      - tabeeby-network
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    volumes:
+      - qdrant-data:/qdrant/storage
+    ports:
+      - "6333:6333"
+    networks:
+      - tabeeby-network
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+      - ../../database/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    networks:
+      - tabeeby-network
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - tabeeby-network
+
+  # Message Broker
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    networks:
+      - tabeeby-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - tabeeby-network
+
+  # Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ../kubernetes/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - tabeeby-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    networks:
+      - tabeeby-network
+
+volumes:
+  postgres-data:
+  timescale-data:
+  neo4j-data:
+  qdrant-data:
+  redis-data:
+  minio-data:
+  clamav-run:
+  ultra-iq-models:
+  diagnostic-models:
+
+networks:
+  tabeeby-network:
+    driver: bridge

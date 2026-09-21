@@ -1,0 +1,11 @@
+name: "Tabeeby CodeQL Config"
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
+paths:
+  - backend
+  - frontend
+paths-ignore:
+  - '**/node_modules'
+  - '**/.next'
+  - '**/dist'

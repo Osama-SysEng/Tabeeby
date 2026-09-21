@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tabeeby-edge-node
+  namespace: tabeeby-edge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tabeeby-edge
+  template:
+    metadata:
+      labels:
+        app: tabeeby-edge
+    spec:
+      containers:
+      - name: edge-node
+        image: tabeeby/edge-node:latest
+        resources:
+          limits:
+            memory: "8Gi"
+            cpu: "4"
+        env:
+        - name: SYNC_INTERVAL
+          value: "300"
+        - name: OFFLINE_MODE
+          value: "true"
+        - name: CENTRAL_API_URL
+          value: "https://api.tabeeby.health"
+        volumeMounts:
+        - name: local-storage
+          mountPath: /data
+      volumes:
+      - name: local-storage
+        persistentVolumeClaim:
+          claimName: edge-storage

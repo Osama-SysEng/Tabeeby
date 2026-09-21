@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TABEEBY Desktop</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      padding: 20px 40px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 {
+      font-size: 28px;
+      background: linear-gradient(90deg, #22d3ee, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      padding: 40px;
+      flex: 1;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+    }
+    .card:hover {
+      border-color: #22d3ee;
+      transform: translateY(-2px);
+    }
+    .card h3 { color: #22d3ee; margin-bottom: 8px; }
+    .card p { color: #94a3b8; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>TABEEBY Healthcare OS</h1>
+    <span style="color:#64748b">Desktop v1.0.0</span>
+  </div>
+  <div class="grid">
+    <div class="card"><h3>🧠 Ultra IQ Engine</h3><p>300B cognitive operations per second</p></div>
+    <div class="card"><h3>👥 Patient Management</h3><p>50 concurrent patients per physician</p></div>
+    <div class="card"><h3>🔬 Diagnostic AI</h3><p>U-Net + ResNet + RAG ensemble</p></div>
+    <div class="card"><h3>🤖 Robot Control</h3><p>Universal Robot OS integration</p></div>
+    <div class="card"><h3>🔬 Nano Surgery</h3><p>Atomic precision molecular operations</p></div>
+    <div class="card"><h3>🌐 4D Surgery</h3><p>Temporal + Quantum simulation</p></div>
+  </div>
+</body>
+</html>

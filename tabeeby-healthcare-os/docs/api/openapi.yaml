@@ -1,0 +1,114 @@
+openapi: 3.0.0
+info:
+  title: TABEEBY Healthcare OS API
+  version: 1.0.0
+  description: |
+    The world's most advanced medical AI platform API.
+    Ultra IQ 300B Cognitive Engine | 20M+ concurrent users
+servers:
+  - url: https://api.tabeeby.health/api/v1
+    description: Production
+  - url: http://localhost:8000/api/v1
+    description: Local Development
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        200:
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+
+  /auth/login:
+    post:
+      summary: Multi-factor authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+                tier: { type: string }
+                mfa_code: { type: string }
+                biometric_token: { type: string }
+      responses:
+        200:
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token: { type: string }
+                  refresh_token: { type: string }
+                  tier: { type: string }
+                  permissions: { type: array, items: { type: string } }
+
+  /patients/register:
+    post:
+      summary: Register patient with lifetime AI physician
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                date_of_birth: { type: string }
+                gender: { type: string }
+                language: { type: string }
+      responses:
+        200:
+          description: Patient registered
+
+  /diagnostic/scan:
+    post:
+      summary: Analyze medical scan with U-Net + ResNet
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+                modality: { type: string }
+                body_part: { type: string }
+      responses:
+        200:
+          description: Scan analyzed
+
+  /drug-discovery/pipeline:
+    post:
+      summary: Execute 10-stage drug discovery pipeline
+      responses:
+        200:
+          description: Pipeline completed
+
+  /surgical/4d/temporal:
+    post:
+      summary: 4D temporal surgical simulation
+      responses:
+        200:
+          description: Simulation complete
+
+  /bio-robot/execute:
+    post:
+      summary: Execute bio-robot mission
+      responses:
+        200:
+          description: Mission executed
+
+  /nano/surgery/execute:
+    post:
+      summary: Execute molecular surgery
+      responses:
+        200:
+          description: Surgery completed

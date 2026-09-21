@@ -1,0 +1,16 @@
+collections:
+  medical_knowledge:
+    vectors:
+      size: 768
+      distance: Cosine
+    hnsw_config:
+      m: 16
+      ef_construct: 100
+  patient_memories:
+    vectors:
+      size: 768
+      distance: Cosine
+  drug_compounds:
+    vectors:
+      size: 512
+      distance: Euclidean

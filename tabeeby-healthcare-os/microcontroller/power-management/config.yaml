@@ -1,0 +1,25 @@
+# Power Management
+
+modes:
+  active:
+    power_consumption: 150mA
+    sampling: continuous
+
+  sleep:
+    power_consumption: 2mA
+    wake_interval: 5min
+
+  deep_sleep:
+    power_consumption: 0.1mA
+    wake_on: emergency_threshold
+
+battery:
+  type: li-ion
+  capacity: 2000mAh
+  estimated_life_active: 13hours
+  estimated_life_sleep: 40days
+
+solar_panel:
+  enabled: true
+  capacity: 5W
+  charging_efficiency: 85%

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tabeeby-config
+  namespace: tabeeby-healthcare
+data:
+  API_VERSION: "v1"
+  ULTRA_IQ_OPS: "300000000000"
+  MAX_CONCURRENT_USERS: "20000000"
+  RESPONSE_TIME_TARGET_MS: "1000"
+  ENCRYPTION_STANDARD: "AES-256"
+  COMPLIANCE_FRAMEWORK: "HIPAA,GDPR,ISO27001"

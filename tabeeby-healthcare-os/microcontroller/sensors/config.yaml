@@ -1,0 +1,34 @@
+# TABEEBY Sensor Configuration
+
+supported_sensors:
+  - type: heart_rate
+    model: MAX30102
+    i2c_address: 0x57
+    sampling_rate: 100Hz
+
+  - type: temperature
+    model: MLX90614
+    i2c_address: 0x5A
+    accuracy: +/-0.1C
+
+  - type: blood_pressure
+    model: BPM-188
+    interface: i2c
+
+  - type: ecg
+    model: AD8232
+    leads: 12
+    sampling_rate: 500Hz
+
+  - type: eeg
+    model: OpenBCI_Cyton
+    channels: 16
+    sampling_rate: 250Hz
+
+  - type: blood_glucose
+    model: FreeStyle_Libre
+    interface: nfc
+
+  - type: spo2
+    model: MAX30102
+    i2c_address: 0x57

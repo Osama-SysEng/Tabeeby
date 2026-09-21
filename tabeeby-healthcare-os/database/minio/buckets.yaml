@@ -1,0 +1,17 @@
+buckets:
+  - name: medical-images
+    policy: private
+    versioning: enabled
+    encryption: sse-s3
+  - name: patient-records
+    policy: private
+    versioning: enabled
+    encryption: sse-s3
+  - name: scan-archives
+    policy: private
+    versioning: enabled
+    encryption: sse-s3
+  - name: research-data
+    policy: private
+    versioning: enabled
+    encryption: sse-s3

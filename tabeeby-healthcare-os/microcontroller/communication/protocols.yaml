@@ -1,0 +1,24 @@
+# Communication Protocols
+
+protocols:
+  mqtt:
+    broker: iot-service.tabeeby.health
+    port: 1883
+    qos: 2
+    topics:
+      - tabeeby/iot/vitals
+      - tabeeby/iot/alerts
+      - tabeeby/iot/config
+
+  websocket:
+    endpoint: wss://iot-service.tabeeby.health/ws
+    heartbeat_interval: 30s
+
+  bluetooth:
+    mode: low_energy
+    pairing: secure
+
+  lora:
+    frequency: 868MHz
+    range: 15km
+    use_case: rural_deployments

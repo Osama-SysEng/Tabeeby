@@ -1,0 +1,21 @@
+// TABEEBY Knowledge Graph Schema
+CREATE CONSTRAINT disease_id IF NOT EXISTS
+FOR (d:Disease) REQUIRE d.id IS UNIQUE;
+
+CREATE CONSTRAINT drug_id IF NOT EXISTS
+FOR (dr:Drug) REQUIRE dr.id IS UNIQUE;
+
+CREATE CONSTRAINT protein_id IF NOT EXISTS
+FOR (p:Protein) REQUIRE p.id IS UNIQUE;
+
+CREATE CONSTRAINT gene_id IF NOT EXISTS
+FOR (g:Gene) REQUIRE g.id IS UNIQUE;
+
+CREATE CONSTRAINT patient_id IF NOT EXISTS
+FOR (pa:Patient) REQUIRE pa.id IS UNIQUE;
+
+CREATE INDEX disease_name IF NOT EXISTS
+FOR (d:Disease) ON (d.name);
+
+CREATE INDEX drug_name IF NOT EXISTS
+FOR (dr:Drug) ON (dr.name);
