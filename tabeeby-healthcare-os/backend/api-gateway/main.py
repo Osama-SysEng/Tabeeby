@@ -112,7 +112,11 @@ async def gateway_middleware(request: Request, call_next):
 
     peer_ip = request.client.host if request.client else "0.0.0.0"
     forwarded_for = request.headers.get("x-forwarded-for")
-    request.state.client_ip = resolve_client_ip(peer_ip, forwarded_for, TRUSTED_PROXY_CIDRS)
+    try:
+        request.state.client_ip = resolve_client_ip(peer_ip, forwarded_for, TRUSTED_PROXY_CIDRS)
+    except ValueError:
+        # Non-IP peers (e.g. Starlette TestClient "testclient"): use raw value, trust nothing.
+        request.state.client_ip = peer_ip
 
     # Log only metadata; never log query strings, authorization, or clinical payloads.
     print(f"[{datetime.utcnow().isoformat()}] {request_id} {request.method} {request.url.path} client={request.state.client_ip}")

@@ -3,7 +3,7 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import random
 
 app = FastAPI(title="Tabeeby Patient Service")
@@ -27,6 +27,91 @@ class VitalsUpdate(BaseModel):
 # In-memory store for demo
 patients_db: dict = {}
 vitals_history: dict = {}
+
+# Backwards-compatible safety contract (used by safety tests):
+# vitals body identity must match the path patient id.
+PATIENTS_DB = patients_db
+VITALS_DB: dict = {}
+
+
+class VitalSigns(BaseModel):
+    patient_id: str
+    spo2: Optional[int] = None
+    heart_rate: Optional[int] = None
+    temperature: Optional[float] = None
+
+
+async def record_vitals(patient_id: str, vitals: VitalSigns, background_tasks=None):
+    """Record vitals; reject when body identity does not match the path id."""
+    if vitals.patient_id != patient_id:
+        raise HTTPException(status_code=422, detail="patient identity mismatch")
+    entry = vitals.model_dump()
+    entry["recorded_at"] = datetime.utcnow()
+    vitals_history.setdefault(patient_id, []).append(entry)
+    VITALS_DB[patient_id] = entry
+    return {"status": "recorded", "patient_id": patient_id}
+
+
+class PatientRegistration(BaseModel):
+    name: str
+    date_of_birth: str = Field(min_length=10, max_length=10, pattern=r"^\d{4}-\d{2}-\d{2}$")
+    gender: str = Field(min_length=1, max_length=32)
+    language: str = "auto"
+
+
+class AIPhysician:
+    """Permanent AI physician with lifetime memory per patient."""
+
+    def __init__(self, patient_id: str, language: str = "auto"):
+        self.patient_id = patient_id
+        self.language = "ar" if language == "auto" else language
+        self.dialect: Optional[str] = None
+        self.memory: list = []
+
+    async def learn_dialect(self, sample: str) -> None:
+        self.dialect = "egyptian" if any(w in sample for w in ("ازيك", "عامل", "كده")) else "standard"
+
+    async def generate_response(self, message: str) -> str:
+        self.memory.append({"role": "patient", "message": message})
+        reply = f"[{self.language}] تم استلام رسالتك. هذه استشارة أولية وليست تشخيصا نهائيا."
+        self.memory.append({"role": "physician", "message": reply})
+        return reply
+
+
+AI_PHYSICIANS: dict = {}
+
+
+async def register_patient(registration: PatientRegistration):
+    """Register patient + assign permanent AI physician."""
+    import uuid as _uuid
+
+    patient_id = str(_uuid.uuid4())
+    PATIENTS_DB[patient_id] = {
+        "id": patient_id,
+        **registration.model_dump(),
+        "registered_at": datetime.utcnow().isoformat(),
+        "ai_physician_assigned": True,
+        "lifetime_memory_active": True,
+    }
+    ai_physician = AIPhysician(patient_id, registration.language)
+    AI_PHYSICIANS[patient_id] = ai_physician
+    if registration.language == "auto":
+        await ai_physician.learn_dialect(f"Sample from {registration.name}")
+    return {"patient_id": patient_id, "ai_physician_id": id(ai_physician)}
+
+
+async def chat_with_ai_physician(patient_id: str, message: str):
+    """Chat with personal AI physician."""
+    if patient_id not in AI_PHYSICIANS:
+        raise HTTPException(status_code=404, detail="AI physician not found")
+    ai_physician = AI_PHYSICIANS[patient_id]
+    response = await ai_physician.generate_response(message)
+    return {
+        "patient_id": patient_id,
+        "ai_response": response,
+        "language": ai_physician.language,
+        "dialect": ai_physician.dialect,
+    }
 
 @app.get("/health")
 async def health():

@@ -1,7 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
+import pathlib
 import sys
-sys.path.insert(0, '../backend/api-gateway')
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "backend" / "api-gateway"))
 from main import app
 
 client = TestClient(app)
