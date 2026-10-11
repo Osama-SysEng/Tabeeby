@@ -9,7 +9,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install pytest
-        run: pip install pytest fastapi pydantic httpx sqlalchemy
+        run: pip install pytest fastapi pydantic httpx sqlalchemy redis aiohttp
       - name: Collect tests
         run: pytest tabeeby-healthcare-os/tests --collect-only -q
       # NOTE: full service tests require postgres (see tabeeby-healthcare-os/docker-compose and infrastructure/).
