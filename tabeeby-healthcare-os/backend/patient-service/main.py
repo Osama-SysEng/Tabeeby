@@ -2,7 +2,7 @@
 import asyncio
 from datetime import datetime, timedelta
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 import random
 
@@ -118,8 +118,9 @@ async def health():
     return {"status": "ok", "service": "patient-service", "version": "1.0.0"}
 
 @app.get("/patients")
-async def get_patients():
-    return list(patients_db.values())
+async def get_patients(limit: int = Query(default=50, ge=1, le=500), offset: int = Query(default=0, ge=0)):
+    items = list(patients_db.values())
+    return {"items": items[offset:offset + limit], "total": len(items), "limit": limit, "offset": offset}
 
 @app.get("/patients/{patient_id}")
 async def get_patient(patient_id: str):
@@ -160,10 +161,11 @@ async def update_vitals(patient_id: str, vitals: VitalsUpdate):
     return {"status": "updated", "vitals": vital_data}
 
 @app.get("/patients/{patient_id}/vitals")
-async def get_vitals(patient_id: str):
+async def get_vitals(patient_id: str, limit: int = Query(default=50, ge=1, le=500), offset: int = Query(default=0, ge=0)):
     if patient_id not in vitals_history:
-        return {"vitals": [], "history_count": 0}
-    return {"vitals": vitals_history[patient_id], "history_count": len(vitals_history[patient_id])}
+        return {"vitals": [], "history_count": 0, "limit": limit, "offset": offset}
+    full = vitals_history[patient_id]
+    return {"vitals": full[offset:offset + limit], "history_count": len(full), "limit": limit, "offset": offset}
 
 @app.get("/patients/{patient_id}/vitals/realtime")
 async def get_realtime_vitals(patient_id: str):

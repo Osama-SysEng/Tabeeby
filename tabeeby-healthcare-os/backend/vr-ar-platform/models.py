@@ -9,4 +9,4 @@ class Vr_Ar_PlatformCreate(BaseModel):
     name: str
     description: Optional[str] = None
 class Vr_Ar_PlatformResponse(BaseModel):
-    id: str; name: str; description: Optional[str]; created_at: datetime
+    id: str; name: str; description: Optional[str] = None; created_at: datetime
