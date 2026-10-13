@@ -9,7 +9,7 @@ export const LiteratureReview: React.FC = () => {
   };
   return (
     <div className="literature-review">
-      <h2>مراجعة الأدبيات -索引 15,000+ مستند</h2>
+      <h2>مراجعة الأدبيات -الفهرس 15,000+ مستند</h2>
       <input placeholder="البحث..." onKeyDown={e => { if(e.key==='Enter') searchPapers(e.target.value); }} />
       {papers.map(p => (
         <div key={p.id} className="paper-card">

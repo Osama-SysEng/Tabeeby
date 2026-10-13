@@ -9,4 +9,4 @@ class Surgical_SuiteCreate(BaseModel):
     name: str
     description: Optional[str] = None
 class Surgical_SuiteResponse(BaseModel):
-    id: str; name: str; description: Optional[str]; created_at: datetime
+    id: str; name: str; description: Optional[str] = None; created_at: datetime

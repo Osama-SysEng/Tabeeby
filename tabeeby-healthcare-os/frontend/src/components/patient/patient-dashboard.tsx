@@ -23,7 +23,7 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({ patientId, u
   return (
     <div className="patient-dashboard">
       <VitalsPanel vitals={vitals} />
-      <AI滉ysicianChat patientId={patientId} messages={aiMessages} />
+      <AIPhysicianChat patientId={patientId} messages={aiMessages} />
       <EmergencyButton patientId={patientId} onEmergency={() => {}} />
       <HealthTrends patientId={patientId} />
     </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 // تنبيهات Ultra IQ مع animation
 export const AnimatedUltraIQAlerts = () => {
   const [alerts, setAlerts] = useState([
-    { id: '1', type: '심박수', message: 'انخفاض ملحوظ في نبض المريض #1234', seconds: 45, confidence: 92 },
+    { id: '1', type: 'معدل القلب', message: 'انخفاض ملحوظ في نبض المريض #1234', seconds: 45, confidence: 92 },
     { id: '2', type: 'السكر', message: 'مستوى السكر يرتفع بسرعة - المريض #5678', seconds: 30, confidence: 87 },
   ]);
   const [visibleCount, setVisibleCount] = useState(alerts.length);

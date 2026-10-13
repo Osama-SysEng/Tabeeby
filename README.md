@@ -33,6 +33,12 @@ cp .env.example .env
 docker compose up --build
 ```
 
+## نطاق التنفيذ (بصدق)
+
+- يعمل فعلا: 5 خدمات أساسية تم التحقق منها حيا (53 route)، قاعدة PostgreSQL حية، 27+12 اختبارا أخضر، ووضع simulation-only معلن حيث لا يوجد تكامل حقيقي.
+- 6 خدمات إضافية (ai-physician، edge-computing، surgical-suite، ultra-iq-integration، virtual-nanobot، vr-ar-platform) نماذج محاكاة أولية بعقود حقيقية — ليست أنظمة سريرية.
+- المواصفات الطويلة (VR جراحي، اكتشاف دوائي، 10,000 دواء، قراءة أشعة بزمن محدد) وثيقة بحثية طويلة المدى، وليست قدرات منفذة ومقاسة.
+
 ## الرابط
 - GitHub: [Osama-SysEng/Tabeeby](https://github.com/Osama-SysEng/Tabeeby)
 
