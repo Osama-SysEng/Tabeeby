@@ -23,8 +23,11 @@ if _shared_root not in sys.path:
 from shared.security.ip_policy import parse_networks, resolve_client_ip
 from shared.security.monitoring import make_security_event
 from shared.security.detection import DetectionEngine
+from logging_utils import get_logger, new_request_id, request_id_ctx
 
 app = FastAPI(title="Tabeeby API Gateway", version="1.0.0")
+
+logger = get_logger("tabeeby-api-gateway")
 
 # CORS
 app.add_middleware(
@@ -103,30 +106,37 @@ async def rate_limit_check(user_id: str, tier: str = "standard"):
 
 @app.middleware("http")
 async def gateway_middleware(request: Request, call_next):
-    request_id = str(uuid.uuid4())
-    request.state.request_id = request_id
-
-    content_length = request.headers.get("content-length")
-    if content_length and int(content_length) > MAX_BODY_BYTES:
-        return JSONResponse(status_code=413, content={"detail": "Request body too large", "request_id": request_id})
-
-    peer_ip = request.client.host if request.client else "0.0.0.0"
-    forwarded_for = request.headers.get("x-forwarded-for")
+    request_id = request.headers.get("x-request-id") or new_request_id()
+    token = request_id_ctx.set(request_id)
     try:
-        request.state.client_ip = resolve_client_ip(peer_ip, forwarded_for, TRUSTED_PROXY_CIDRS)
-    except ValueError:
-        # Non-IP peers (e.g. Starlette TestClient "testclient"): use raw value, trust nothing.
-        request.state.client_ip = peer_ip
+        request.state.request_id = request_id
 
-    # Log only metadata; never log query strings, authorization, or clinical payloads.
-    print(f"[{datetime.utcnow().isoformat()}] {request_id} {request.method} {request.url.path} client={request.state.client_ip}")
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > MAX_BODY_BYTES:
+            return JSONResponse(status_code=413, content={"detail": "Request body too large", "request_id": request_id})
 
-    response = await call_next(request)
-    response.headers["X-Request-ID"] = request_id
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Referrer-Policy"] = "no-referrer"
-    return response
+        peer_ip = request.client.host if request.client else "0.0.0.0"
+        forwarded_for = request.headers.get("x-forwarded-for")
+        try:
+            request.state.client_ip = resolve_client_ip(peer_ip, forwarded_for, TRUSTED_PROXY_CIDRS)
+        except ValueError:
+            # Non-IP peers (e.g. Starlette TestClient "testclient"): use raw value, trust nothing.
+            request.state.client_ip = peer_ip
+
+        # Log only metadata; never log query strings, authorization, or clinical payloads.
+        logger.info(
+            f"{request.method} {request.url.path} client={request.state.client_ip}",
+            extra={"event": "http.access", "fields": {"method": request.method, "path": request.url.path, "client_ip": request.state.client_ip}},
+        )
+
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        return response
+    finally:
+        request_id_ctx.reset(token)
 
 @app.get("/health")
 async def health_check():
