@@ -47,3 +47,4 @@ docker compose up --build
 - 5 backend services verified live on import (53 routes: diagnostic-ai 9, drug-discovery 8, national-health 9, physician-service 9, patient-service 18) with compose-aligned ports
 - Interactive 3D showcase: open `web-3d/index.html` (Three.js, animated, mouse-reactive)
 - الفريق: Osama Mohamed Fathy — IT Systems Engineer & Intelligent Automation Architect
+- Structured JSON logging + X-Request-ID tracing (see tabeeby-healthcare-os/docs/LOGGING.md)
